@@ -65,8 +65,8 @@ backend/
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd legal-document-generator
+   git clone https://github.com/ShanpreetSingh/LegalDocsApp
+   cd project
    ```
 
 2. **Install dependencies**
@@ -206,6 +206,3 @@ This application generates document templates for educational and demonstration 
 - Optimized bundle size
 - Fast development server
 
-## License
-
-This project is for demonstration and educational purposes. Consult legal professionals for actual document creation needs.
