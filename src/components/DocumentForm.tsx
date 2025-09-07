@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { DocumentType, FormField as FormFieldType, WillFormData, PoAFormData } from '../types';
 import FormField from './FormField';
 import ProgressBar from './ProgressBar';
-import { AlertCircle, FileText, Eye, CreditCard, Download, CheckCircle } from 'lucide-react';
+import { AlertCircle, FileText, Eye, CreditCard, Download, CheckCircle, Lock } from 'lucide-react';
 
 interface DocumentFormProps {
   documentType: DocumentType;
@@ -119,8 +119,7 @@ export default function DocumentForm({ documentType, onBack }: DocumentFormProps
   } else {
     alert('Failed to generate preview: Unknown error occurred.');
   }
-}
-finally {
+} finally {
       setIsGenerating(false);
     }
   };
@@ -224,26 +223,95 @@ finally {
 
   const renderPreviewStep = () => (
     <div className="space-y-6">
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <div className="flex items-center space-x-2">
-          <AlertCircle className="h-5 w-5 text-yellow-600" />
-          <span className="text-yellow-800 font-medium">Preview Only - Payment Required for Final Version</span>
-        </div>
-      </div>
-      
       {previewUrl && (
-        <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 bg-slate-50">
-          <div className="text-center space-y-4">
-            <FileText className="h-16 w-16 text-slate-400 mx-auto" />
-            <div>
-              <h3 className="text-lg font-medium text-slate-900">Document Preview Ready</h3>
-              <p className="text-slate-600">Your document has been generated with a watermark</p>
+        <div className="space-y-4">
+          {/* Security Notice */}
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-center space-x-3">
+              <Lock className="h-5 w-5 text-red-600 flex-shrink-0" />
+              <div>
+                <h4 className="font-semibold text-red-800">Preview Only - Protected Document</h4>
+                <p className="text-red-700 text-sm">
+                  This preview cannot be downloaded, printed, or saved. Complete payment to access the final document.
+                </p>
+              </div>
             </div>
+          </div>
+
+          {/* PDF Preview Container */}
+          <div 
+            className="bg-slate-100 rounded-lg p-4 relative"
+            onContextMenu={(e) => { e.preventDefault(); return false; }}
+            onKeyDown={(e) => {
+              if (
+                (e.ctrlKey && (e.key === 's' || e.key === 'p')) ||
+                e.key === 'F12' ||
+                (e.ctrlKey && e.shiftKey && e.key === 'I')
+              ) {
+                e.preventDefault();
+                return false;
+              }
+            }}
+            tabIndex={0}
+            style={{ 
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              MozUserSelect: 'none',
+              msUserSelect: 'none'
+            }}
+          >
             <iframe
-              src={previewUrl}
-              className="w-full h-96 border rounded-lg bg-white"
-              title="Document Preview"
+              src={`${previewUrl}#toolbar=0&navpanes=0&scrollbar=0&statusbar=0&messages=0&view=FitH`}
+              width="100%"
+              height="600"
+              className="border-0 rounded-lg shadow-lg"
+              title={`Preview of ${documentType === 'will' ? 'Last Will & Testament' : 'Power of Attorney'}`}
+              style={{
+                pointerEvents: 'auto',
+                userSelect: 'none'
+              }}
             />
+            
+            {/* Overlay to prevent direct PDF access */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold opacity-90">
+                PREVIEW ONLY
+              </div>
+              <div className="absolute bottom-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold opacity-90">
+                NOT FOR DOWNLOAD
+              </div>
+            </div>
+          </div>
+
+          {/* Footer Notice */}
+          <div className="text-center text-sm text-slate-500 bg-slate-50 rounded-lg p-3">
+            <Eye className="h-4 w-4 inline mr-2" />
+            Preview mode active - Final document available after payment
+          </div>
+
+          {/* CSS to hide PDF toolbar and disable printing */}
+          <style>{`
+            iframe {
+              -webkit-print-color-adjust: exact;
+            }
+            
+            @media print {
+              iframe {
+                display: none !important;
+              }
+              
+              .no-print {
+                display: block !important;
+                text-align: center;
+                font-size: 24px;
+                color: red;
+                margin: 50px;
+              }
+            }
+          `}</style>
+          
+          <div className="no-print" style={{ display: 'none' }}>
+            PRINTING DISABLED - PREVIEW ONLY
           </div>
         </div>
       )}
